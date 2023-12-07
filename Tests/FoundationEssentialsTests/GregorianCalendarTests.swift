@@ -646,4 +646,37 @@ final class GregorianCalendarTests : XCTestCase {
         test(.minute, in: .month, for: date, expected: 16144)
         test(.minute, in: .hour, for: date, expected: 4)
     }
+
+    /*
+    func testFirstInstant_gmt() {
+        let cal = _CalendarGregorian(identifier: .gregorian, timeZone: .gmt, locale: nil, firstWeekday: 5, minimumDaysInFirstWeek: 4, gregorianStartDate: nil)
+
+        let cal_icu =
+        var date: Date
+        date = Date(timeIntervalSince1970: 820483200.0) // 1996-01-01T00:00:00-0800 (1996-01-01T08:00:00Z)
+        cal.firstInstant(of: .day, at: <#T##Date#>)
+    }
+     */
+
+    func testStartOf() {
+        let firstWeekday = 2
+        let minimumDaysInFirstWeek = 4
+        let timeZone = TimeZone(secondsFromGMT: -3600 * 8)!
+        let gregorianCalendar = _CalendarGregorian(identifier: .gregorian, timeZone: timeZone, locale: nil, firstWeekday: firstWeekday, minimumDaysInFirstWeek: minimumDaysInFirstWeek, gregorianStartDate: nil)
+        func test(_ unit: Calendar.Component, at date: Date, expected: Date, file: StaticString = #file, line: UInt = #line) {
+            let new = gregorianCalendar.start(of: unit, at: date)!
+            XCTAssertEqual(new, expected, file: file, line: line)
+        }
+
+        var date: Date
+        date = Date(timeIntervalSince1970: 820483200.0) // 1996-01-01T00:00:00-0800 (1996-01-01T08:00:00Z)
+        test(.hour, at: date, expected: date)
+        test(.day, at: date, expected: date)
+        test(.month, at: date, expected: date)
+        test(.year, at: date, expected: date)
+        test(.yearForWeekOfYear, at: date, expected: date)
+        test(.weekOfYear, at: date, expected: date)
+
+        
+    }
 }

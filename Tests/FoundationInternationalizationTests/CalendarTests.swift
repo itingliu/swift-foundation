@@ -687,7 +687,6 @@ final class CalendarBridgingTests : XCTestCase {
 #endif
 
 
-#if ENABLE_CALENDAR_COMPATIBILITY_TEST // These tests take a long time to run, so disable them for now
 // This test validates the results against FoundationInternationalization's calendar implementation temporarily until we completely ported the calendar
 final class GregorianCalendarCompatibilityTests: XCTestCase {
 
@@ -1076,5 +1075,42 @@ final class GregorianCalendarCompatibilityTests: XCTestCase {
         verifyAdding(.init(day: -7, weekOfMonth: 1),                 to: march1_1996, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar, wrap: true)
         verifyAdding(.init(day: -7, weekOfMonth: 1, weekOfYear: 1),  to: march1_1996, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar, wrap: true)
     }
+
+    func testStartOf() {
+        let firstWeekday = 2
+        let minimumDaysInFirstWeek = 4
+        let timeZone = TimeZone(secondsFromGMT: -3600 * 8)!
+        let icuCalendar = _CalendarICU(identifier: .gregorian, timeZone: timeZone, locale: nil, firstWeekday: firstWeekday, minimumDaysInFirstWeek: minimumDaysInFirstWeek, gregorianStartDate: nil)
+        let gregorianCalendar = _CalendarGregorian(identifier: .gregorian, timeZone: timeZone, locale: nil, firstWeekday: firstWeekday, minimumDaysInFirstWeek: minimumDaysInFirstWeek, gregorianStartDate: nil)
+
+        func test(_ unit: Calendar.Component, _ date: Date, file: StaticString = #file, line: UInt = #line) {
+            let old = icuCalendar.startOf(of: unit, at: date)!
+            let new = gregorianCalendar.start(of: unit, at: date)!
+            XCTAssertEqual(new, old, file: file, line: line)
+            print("""
+test(.\(unit), at: date, expected: Date(timeIntervalSince1970: \(old.timeIntervalSince1970))) // expect: \(old)
+""")
+        }
+        var date: Date
+
+
+        date = Date(timeIntervalSince1970: 820483200.0) // 1996-01-01T00:00:00-0800 (1996-01-01T08:00:00Z)
+//        test(.day, date)
+//        test(.month, date)
+//        test(.year, date)
+        test(.yearForWeekOfYear, date)
+        test(.weekOfYear, date)
+
+        let yr1 = gregorianCalendar.dateComponents([.yearForWeekOfYear], from: try! Date("1995-12-25T08:00:00Z", strategy: .iso8601))
+        print(yr1.yearForWeekOfYear)
+
+        let yr2 = gregorianCalendar.dateComponents([.yearForWeekOfYear], from: try! Date("1995-12-26T08:00:00Z", strategy: .iso8601))
+        print(yr2.yearForWeekOfYear)
+
+        let yr3 = gregorianCalendar.dateComponents([.yearForWeekOfYear], from: try! Date("1995-12-31T08:00:00Z", strategy: .iso8601))
+        print(yr3.yearForWeekOfYear)
+
+        let yr4 = gregorianCalendar.dateComponents([.yearForWeekOfYear], from: date)
+        print(yr4.yearForWeekOfYear)
+    }
 }
-#endif // ENABLE_CALENDAR_COMPATIBILITY_TEST
