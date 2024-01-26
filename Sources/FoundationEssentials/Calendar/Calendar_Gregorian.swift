@@ -226,7 +226,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
         }
 
         get {
-            _firstWeekday ?? 1
+            _firstWeekday ?? locale?.firstDayOfWeek.icuIndex ?? 1
         }
     }
 
@@ -243,7 +243,13 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
         }
 
         get {
-            _minimumDaysInFirstWeek ?? 1
+            if let minimumDaysInFirstWeek = _minimumDaysInFirstWeek {
+                return minimumDaysInFirstWeek
+            } else if let locale = locale?._locale {
+                return locale.minimumDaysInFirstWeek
+            } else {
+                return 1
+            }
         }
     }
 

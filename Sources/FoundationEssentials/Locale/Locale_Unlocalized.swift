@@ -173,6 +173,10 @@ internal final class _LocaleUnlocalized : _LocaleProtocol, @unchecked Sendable {
         .monday
     }
 
+    var minimumDaysInFirstWeek: Int {
+        return 1
+    }
+
     var weekendRange: WeekendRange? {
         // Weekend range for 001 region
         WeekendRange(onsetTime: 0, ceaseTime: 86400, start: 7, end: 1)

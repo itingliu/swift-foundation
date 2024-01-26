@@ -42,7 +42,7 @@ internal final class _LocaleICU: _LocaleProtocol, Sendable {
         var availableNumberingSystems: [Locale.NumberingSystem]?
         var firstDayOfWeek: Locale.Weekday?
         var weekendRange: WeekendRange??
-        var minimalDaysInFirstWeek: Int?
+        var minimumDaysInFirstWeek: Int?
         var hourCycle: Locale.HourCycle?
         var measurementSystem: Locale.MeasurementSystem?
         var usesCelsius: Bool? // UnitTemperature is not Sendable
@@ -1230,6 +1230,21 @@ internal final class _LocaleICU: _LocaleProtocol, Sendable {
         }
     }
 
+    var minimumDaysInFirstWeek: Int {
+        lock.withLock { state in
+            if let minimumDaysInFirstWeek = state.minimumDaysInFirstWeek {
+                return minimumDaysInFirstWeek
+            }
+
+            var status = U_ZERO_ERROR
+            let cal = ucal_open(nil, 0, identifier, UCAL_DEFAULT, &status)
+            defer { ucal_close(cal) }
+            let minDays = Int(ucal_getAttribute(cal, UCAL_MINIMAL_DAYS_IN_FIRST_WEEK))
+            state.minimumDaysInFirstWeek = minDays
+
+            return minDays
+        }
+    }
     var weekendRange: WeekendRange? {
         let firstWeekday = self.firstDayOfWeek
         return lock.withLock { state -> WeekendRange? in
