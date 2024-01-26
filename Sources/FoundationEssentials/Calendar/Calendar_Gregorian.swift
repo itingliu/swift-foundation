@@ -226,6 +226,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
         }
 
         get {
+            // FIXME: This would pick up custom first weekday in locale prefs if it's set. _CalendarICU does not propogate custom from locale.
             _firstWeekday ?? locale?.firstDayOfWeek.icuIndex ?? 1
         }
     }
@@ -245,7 +246,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
         get {
             if let minimumDaysInFirstWeek = _minimumDaysInFirstWeek {
                 return minimumDaysInFirstWeek
-            } else if let locale = locale?._locale {
+            } else if let locale = locale?._locale { // FIXME: This would pick up custom minimumDaysInFirstWeek in locale prefs if it's set. _CalendarICU does not propogate custom minimumDaysInFirstWeek from locale.
                 return locale.minimumDaysInFirstWeek
             } else {
                 return 1
