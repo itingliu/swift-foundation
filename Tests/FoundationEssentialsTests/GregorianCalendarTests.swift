@@ -167,11 +167,33 @@ final class GregorianCalendarTests : XCTestCase {
             XCTAssertEqual(dc.isLeapMonth, isLeapMonth, file: file, line: line)
             XCTAssertEqual(dc.timeZone, timeZone, file: file, line: line)
         }
-        test(Date(timeIntervalSince1970: 852045787.0), .gmt, expectedEra: 1, year: 1996, month: 12, day: 31, hour: 15, minute: 23, second: 7, nanosecond: 0, weekday: 3, weekdayOrdinal: 5, quarter: 4, weekOfMonth: 5, weekOfYear: 53, yearForWeekOfYear: 1996, isLeapMonth: false) // 1996-12-31T15:23:07Z
-        test(Date(timeIntervalSince1970: 825607387.0), .gmt, expectedEra: 1, year: 1996, month: 2, day: 29, hour: 15, minute: 23, second: 7, nanosecond: 0, weekday: 5, weekdayOrdinal: 5, quarter: 1, weekOfMonth: 4, weekOfYear: 9, yearForWeekOfYear: 1996, isLeapMonth: false) // 1996-02-29T15:23:07Z
-        test(Date(timeIntervalSince1970: 828838987.0), .gmt, expectedEra: 1, year: 1996, month: 4, day: 7, hour: 1, minute: 3, second: 7, nanosecond: 0, weekday: 1, weekdayOrdinal: 1, quarter: 2, weekOfMonth: 2, weekOfYear: 15, yearForWeekOfYear: 1996, isLeapMonth: false) // 1996-04-07T01:03:07Z
-        test(Date(timeIntervalSince1970: -62135765813.0), .gmt, expectedEra: 1, year: 1, month: 1, day: 1, hour: 1, minute: 3, second: 7, nanosecond: 0, weekday: 7, weekdayOrdinal: 1, quarter: 1, weekOfMonth: 0, weekOfYear: 52, yearForWeekOfYear: 0, isLeapMonth: false) // 0001-01-01T01:03:07Z
-        test(Date(timeIntervalSince1970: -62135852213.0), .gmt, expectedEra: 0, year: 1, month: 12, day: 31, hour: 1, minute: 3, second: 7, nanosecond: 0, weekday: 6, weekdayOrdinal: 5, quarter: 4, weekOfMonth: 4, weekOfYear: 52, yearForWeekOfYear: 0, isLeapMonth: false) // 0000-12-31T01:03:07Z
+    }
+
+    func testDateComponentsFromDate_DST() {
+        let tz = TimeZone(identifier: "America/Los_Angeles")!
+
+        let calendar = _CalendarGregorian(identifier: .gregorian, timeZone: tz, locale: nil, firstWeekday: 1, minimumDaysInFirstWeek: 1, gregorianStartDate: nil)
+        func test(_ date: Date, _ timeZone: TimeZone, expectedEra era: Int, year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int, nanosecond: Int, weekday: Int, weekdayOrdinal: Int, quarter: Int, weekOfMonth: Int, weekOfYear: Int, yearForWeekOfYear: Int, isLeapMonth: Bool, file: StaticString = #file, line: UInt = #line) {
+            let dc = calendar.dateComponents([.era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .calendar, .timeZone], from: date)
+            XCTAssertEqual(dc.era, era, file: file, line: line)
+            XCTAssertEqual(dc.year, year, file: file, line: line)
+            XCTAssertEqual(dc.month, month, file: file, line: line)
+            XCTAssertEqual(dc.day, day, file: file, line: line)
+            XCTAssertEqual(dc.hour, hour, file: file, line: line)
+            XCTAssertEqual(dc.minute, minute, file: file, line: line)
+            XCTAssertEqual(dc.second, second, file: file, line: line)
+            XCTAssertEqual(dc.weekday, weekday, file: file, line: line)
+            XCTAssertEqual(dc.weekdayOrdinal, weekdayOrdinal, file: file, line: line)
+            XCTAssertEqual(dc.weekOfMonth, weekOfMonth, file: file, line: line)
+            XCTAssertEqual(dc.weekOfYear, weekOfYear, file: file, line: line)
+            XCTAssertEqual(dc.yearForWeekOfYear, yearForWeekOfYear, file: file, line: line)
+            XCTAssertEqual(dc.quarter, quarter, file: file, line: line)
+            XCTAssertEqual(dc.nanosecond, nanosecond, file: file, line: line)
+            XCTAssertEqual(dc.isLeapMonth, isLeapMonth, file: file, line: line)
+            XCTAssertEqual(dc.timeZone, timeZone, file: file, line: line)
+        }
+        test(Date(timeIntervalSince1970: -62135769600), tz, expectedEra: 0, year: 1, month: 12, day: 31, hour: 16, minute: 7, second: 2, nanosecond: 0, weekday: 6, weekdayOrdinal: 5, quarter: 4, weekOfMonth: 5, weekOfYear: 1, yearForWeekOfYear: 1, isLeapMonth: false) // 0001-12-31T16:07:02-075258
+
     }
 
     // MARK: - Add

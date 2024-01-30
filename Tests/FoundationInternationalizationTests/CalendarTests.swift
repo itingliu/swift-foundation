@@ -21,6 +21,44 @@ import TestSupport
 @testable import FoundationEssentials
 #endif // FOUNDATION_FRAMEWORK
 
+extension DateComponents {
+    fileprivate static func differenceBetween(_ d1: DateComponents?, _ d2: DateComponents?, compareQuarter: Bool, within nanosecondAccuracy: Int = 5000) -> String? {
+        let components: [Calendar.Component] = [.era, .year, .month, .day, .dayOfYear, .hour, .minute, .second, .weekday, .weekdayOrdinal, .weekOfYear, .yearForWeekOfYear, .weekOfMonth, .timeZone, .isLeapMonth, .calendar, .quarter, .nanosecond]
+        var diffStr = ""
+        var isEqual = true
+        for component in components {
+            let actualValue = d1?.value(for: component)
+            let expectedValue = d2?.value(for: component)
+            switch component {
+            case .era, .year, .month, .day, .dayOfYear, .hour, .minute, .second, .weekday, .weekdayOrdinal, .weekOfYear, .yearForWeekOfYear, .weekOfMonth, .timeZone, .isLeapMonth, .calendar:
+                if actualValue != expectedValue {
+                    diffStr += "\ncomponent: \(component), 1st: \(String(describing: actualValue)), 2nd: \(String(describing: expectedValue))"
+                    isEqual = false
+                }
+            case .quarter:
+                if compareQuarter && actualValue != expectedValue {
+                    diffStr += "\ncomponent: \(component), 1st: \(String(describing: actualValue)), 2nd: \(String(describing: expectedValue))"
+                    isEqual = false
+                }
+            case .nanosecond:
+                var nanosecondIsEqual = true
+                if let actualValue, let expectedValue, (abs(actualValue - expectedValue) > nanosecondAccuracy) {
+                    nanosecondIsEqual = false
+                } else if actualValue != expectedValue { // one of them is nil
+                    nanosecondIsEqual = false
+                }
+
+                if !nanosecondIsEqual {
+                    diffStr += "\ncomponent: \(component), 1st: \(String(describing: actualValue)), 2nd: \(String(describing: expectedValue))"
+                    isEqual = false
+                }
+            }
+        }
+
+        return isEqual ? nil : diffStr
+    }
+}
+
 final class CalendarTests : XCTestCase {
 
     var allCalendars: [Calendar] = [
@@ -1117,6 +1155,34 @@ final class GregorianCalendarCompatibilityTests: XCTestCase {
         }
     }
 
+    func testDateComponentsFromDate_distantDates() {
+
+        let componentSet = Calendar.ComponentSet([.era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .calendar])
+        func test(_ date: Date, icuCalendar: _CalendarICU, gregorianCalendar: _CalendarGregorian, _ message: @autoclosure () -> String = "", file: StaticString = #file, line: UInt = #line) {
+            let gregResult = gregorianCalendar.dateComponents(componentSet, from: date, in: gregorianCalendar.timeZone)
+            let icuResult = icuCalendar.dateComponents(componentSet, from: date, in: icuCalendar.timeZone)
+            // The original implementation does not set quarter
+        
+            expectEqual(gregResult, icuResult, expectQuarter: false, expectCalendar: false, message().appending("\ndate: \(date.timeIntervalSince1970), \(date.formatted(Date.ISO8601FormatStyle(timeZone: gregorianCalendar.timeZone)))\nnew:\n\(gregResult)\nold:\n\(icuResult)\ndiff:\n\(DateComponents.differenceBetween(gregResult, icuResult, compareQuarter: false))"), file: file, line: line)
+        }
+
+        do {
+            let icuCalendar = _CalendarICU(identifier: .gregorian, timeZone: .gmt, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
+            let gregorianCalendar = _CalendarGregorian(identifier: .gregorian, timeZone: .gmt, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
+            test(.distantPast, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
+            test(.distantFuture, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
+        }
+
+        do {
+            let tz = TimeZone(identifier: "America/Los_Angeles")!
+            let icuCalendar = _CalendarICU(identifier: .gregorian, timeZone: tz, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
+            let gregorianCalendar = _CalendarGregorian(identifier: .gregorian, timeZone: tz, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
+            test(.distantPast, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
+            test(.distantFuture, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
+        }
+
+    }
+
     func testDateComponentsFromDateCompatibility_DST() {
         let componentSet = Calendar.ComponentSet([.era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .calendar])
 
@@ -1132,7 +1198,6 @@ final class GregorianCalendarCompatibilityTests: XCTestCase {
         }
 
         let testStrides = stride(from: -864000, to: 864000, by: 100)
-        let gmtPlusOne = TimeZone(secondsFromGMT: 3600)!
 
         for ti in testStrides {
             let date = Date(timeIntervalSince1970: TimeInterval(ti))
