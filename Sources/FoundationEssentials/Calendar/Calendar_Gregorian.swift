@@ -679,7 +679,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
 
     func firstInstant(of unit: Calendar.Component, at date: Date) -> Date {
         var startAtUnit = unit
-        let monthBasedComponents : Calendar.ComponentSet = [.era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekday]
+        let monthBasedComponents : Calendar.ComponentSet = [.era, .year, .month, .day, .hour, .minute, .second, .nanosecond]
         let weekBasedComponents: Calendar.ComponentSet = [.era, .weekday, .weekOfYear, .yearForWeekOfYear, .hour, .minute, .second, .nanosecond ]
         let relevantComponents: Calendar.ComponentSet
         if startAtUnit == .yearForWeekOfYear || startAtUnit == .weekOfYear || startAtUnit == .weekOfMonth {
@@ -762,7 +762,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
         }
 
         let updatedDate = self.date(from: dc)!
-
+        print(updatedDate.timeIntervalSince1970)
         let start: Date
         var count = 0
         if startAtUnit == .day || startAtUnit == .weekday || startAtUnit == .weekdayOrdinal {
@@ -1782,7 +1782,8 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
     }
 
     func dateComponents(_ components: Calendar.ComponentSet, from date: Date, in timeZone: TimeZone) -> DateComponents {
-        let date = date + Double(timeZone.secondsFromGMT(for: date))
+        let timezoneOffset = timeZone.secondsFromGMT(for: date)
+        let date = date + Double(timezoneOffset)
 
         let julianDay = date.julianDay
 

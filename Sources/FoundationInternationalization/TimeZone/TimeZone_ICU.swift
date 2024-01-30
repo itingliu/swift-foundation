@@ -105,23 +105,37 @@ internal final class _TimeZoneICU: _TimeZoneProtocol, Sendable {
 
     func secondsFromGMT(for date: Date) -> Int {
         return lock.withLock {
-            var udate = date.udate
-            // make answers agree with nextDaylightSavingTimeTransitionAfterDate
-            if udate < MIN_TIMEZONE_UDATE { udate = MIN_TIMEZONE_UDATE }
-            if MAX_TIMEZONE_UDATE < udate { udate = MAX_TIMEZONE_UDATE }
-
+            let udate = date.udate
             guard let c = $0.calendar(identifier) else {
                 return 0
             }
 
             var status = U_ZERO_ERROR
             ucal_setMillis(c, udate, &status)
-            let offset = (ucal_get(c, UCAL_ZONE_OFFSET, &status) + ucal_get(c, UCAL_DST_OFFSET, &status)) / 1000
-            if status.isSuccess {
-                return Int(offset)
-            } else {
+
+            let zoneOffset = ucal_get(c, UCAL_ZONE_OFFSET, &status)
+            guard status.isSuccess else {
                 return 0
             }
+
+            // make answers agree with nextDaylightSavingTimeTransitionAfterDate
+            let capped: UDate
+            if udate < MIN_TIMEZONE_UDATE {
+                capped = MIN_TIMEZONE_UDATE
+            } else if MAX_TIMEZONE_UDATE < udate {
+                capped = MAX_TIMEZONE_UDATE
+            } else {
+                capped = udate
+            }
+
+            status = U_ZERO_ERROR
+            ucal_setMillis(c, capped, &status)
+
+            let dstOffset = ucal_get(c, UCAL_DST_OFFSET, &status)
+            guard status.isSuccess else {
+                return 0
+            }
+            return Int((zoneOffset + dstOffset) / 1000)
         }
     }
 
