@@ -764,22 +764,26 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
         let updatedDate = self.date(from: dc)!
 
         let start: Date
+        var count = 0
         if startAtUnit == .day || startAtUnit == .weekday || startAtUnit == .weekdayOrdinal {
             let targetDay = dateComponent(.day, from: updatedDate)
             var currentDay = targetDay
             var udate = updatedDate
             // FIXME: Add a fail-safe for searching functions to prevent infinite loop
             var prev: Date
+
             repeat {
                 prev = udate
                 udate = self.add(.second, to: prev, amount: -1, inTimeZone: timeZone)
                 currentDay = dateComponent(.day, from: udate)
+                count += 1
             } while targetDay == currentDay
 
             start = prev
         } else {
             start = updatedDate
         }
+        print("first instant loop count = \(count)")
 
         // FIXME: dst transition
         return start
@@ -1407,12 +1411,20 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
         }
 
         // move back to 0h0m0s, in case the start of the unit wasn't at 0h0m0s
-        upperBound = firstInstant(of: .day, at: upperBound)
+//        upperBound = firstInstant(of: .day, at: upperBound)
+        // FIXME: why ???
+        let dc = dateComponents([.era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekday], from: upperBound)
+        var adjusted = dc
+        adjusted.hour = minMaxRange(of: .hour, in: dc)?.lowerBound
+        adjusted.minute = minMaxRange(of: .minute, in: dc)?.lowerBound
+        adjusted.second = minMaxRange(of: .second, in: dc)?.lowerBound
+        adjusted.nanosecond = 0
+        let end = self.date(from: adjusted)!
 
-        if let tzTransition = timeZoneTransitionInterval(at: upperBound, timeZone: timeZone) {
-            return DateInterval(start: start, end: upperBound - tzTransition.duration)
+        if let tzTransition = timeZoneTransitionInterval(at: end, timeZone: timeZone) {
+            return DateInterval(start: start, end: end - tzTransition.duration)
         } else if upperBound > start {
-            return DateInterval(start: start, end: upperBound)
+            return DateInterval(start: start, end: end)
         } else {
             // Out of range
             return nil
