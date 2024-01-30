@@ -1793,7 +1793,7 @@ internal final class _CalendarICU: _CalendarProtocol, @unchecked Sendable {
         }
 
         let useDayOfMonth = startAtUnit == .day || startAtUnit == .weekday || startAtUnit == .weekdayOrdinal
-        
+        var count = 0
         if useDayOfMonth {
             let targetDay = ucal_get(ucalendar, UCAL_DAY_OF_MONTH, &status)
             var currentDay = targetDay
@@ -1802,10 +1802,12 @@ internal final class _CalendarICU: _CalendarProtocol, @unchecked Sendable {
                 udate = ucal_getMillis(ucalendar, &status)
                 ucal_add(ucalendar, UCAL_SECOND, -1, &status)
                 currentDay = ucal_get(ucalendar, UCAL_DAY_OF_MONTH, &status)
+                count += 1
             } while targetDay == currentDay
             ucal_setMillis(ucalendar, udate, &status)
         }
-        
+        print("loop count = \(count)")
+
         udate = ucal_getMillis(ucalendar, &status)
         let start = Date(udate: udate)
 
