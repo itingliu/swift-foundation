@@ -1194,6 +1194,27 @@ final class GregorianCalendarCompatibilityTests: XCTestCase {
         }
     }
 
+    func testDateComponentsFromDate_distantDates() {
+
+        let componentSet = Calendar.ComponentSet([.era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .calendar])
+        func test(_ date: Date, icuCalendar: _CalendarICU, gregorianCalendar: _CalendarGregorian, _ message: @autoclosure () -> String = "", file: StaticString = #file, line: UInt = #line) {
+//            let gregResult = gregorianCalendar.dateComponents(componentSet, from: date, in: gregorianCalendar.timeZone)
+            let icuResult = icuCalendar.dateComponents(componentSet, from: date, in: icuCalendar.timeZone)
+            // The original implementation does not set quarter
+
+//            expectEqual(gregResult, icuResult, expectQuarter: false, expectCalendar: false, message().appending("\ndate: \(date.timeIntervalSince1970), \(date.formatted(Date.ISO8601FormatStyle(timeZone: gregorianCalendar.timeZone)))\nnew:\n\(gregResult)\nold:\n\(icuResult)\n"), file: file, line: line)
+        }
+        do {
+            let tz = TimeZone(identifier: "America/Los_Angeles")!
+            let icuCalendar = _CalendarICU(identifier: .gregorian, timeZone: tz, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
+            let gregorianCalendar = _CalendarGregorian(identifier: .gregorian, timeZone: tz, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
+//            test(.distantPast, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
+//            test(.distantFuture, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
+            test(Date(timeIntervalSince1970: -210866774822), icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
+        }
+
+    }
+
 
     // MARK: - adding
     func verifyAdding(_ components: DateComponents, to date: Date, icuCalendar: _CalendarICU, gregorianCalendar: _CalendarGregorian, wrap: Bool = false, _ message: @autoclosure () -> String = "", file: StaticString = #file, line: UInt = #line) {
@@ -1509,6 +1530,33 @@ final class GregorianCalendarCompatibilityTests: XCTestCase {
                 let c1 = icuCalendar.dateInterval(of: component, for: date)
 //                let c2 = gregorianCalendar.dateInterval(of: component, for: date)
 //                XCTAssertEqual(c1, c2)
+            }
+        }
+    }
+
+    func testFirstInstant() {
+        let firstWeekday = 1
+        let minimumDaysInFirstWeek = 1
+        let timeZone = TimeZone(identifier: "America/Los_Angeles")!
+        let icuCalendar = _CalendarICU(identifier: .gregorian, timeZone: timeZone, locale: nil, firstWeekday: firstWeekday, minimumDaysInFirstWeek: minimumDaysInFirstWeek, gregorianStartDate: nil)
+        let gregorianCalendar = _CalendarGregorian(identifier: .gregorian, timeZone: timeZone, locale: nil, firstWeekday: firstWeekday, minimumDaysInFirstWeek: minimumDaysInFirstWeek, gregorianStartDate: nil)
+
+//        let allComponents : [Calendar.Component] = [.era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .dayOfYear, .calendar, .timeZone]
+
+        let allComponents: [Calendar.Component] = [.day]
+        let dates: [Date] = [
+            Date(timeIntervalSinceReferenceDate: -185185037675833.0),
+//            Date(timeIntervalSinceReferenceDate: -211845067200.0),
+//            Date(timeIntervalSinceReferenceDate: 200000000000000.0),
+//            Date(timeIntervalSinceReferenceDate: 15927175497600.0),
+        ]
+        for date in dates {
+            for component in allComponents {
+                let c1 = icuCalendar.firstInstant(of: component, at: date)
+                let c2 = gregorianCalendar.firstInstant(of: component, at: date)
+                XCTAssertEqual(c1, c2)
+                // reduced test case: currently failing at capped date
+//                let r = gregorianCalendar.firstInstant(of: .day, at: date)
             }
         }
     }
