@@ -678,6 +678,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
     // MARK: - Ordinality
 
     func firstInstant(of unit: Calendar.Component, at date: Date) -> Date {
+        let date = date.capped
         var startAtUnit = unit
         let monthBasedComponents : Calendar.ComponentSet = [.era, .year, .month, .day, .hour, .minute, .second, .nanosecond]
         let weekBasedComponents: Calendar.ComponentSet = [.era, .weekday, .weekOfYear, .yearForWeekOfYear, .hour, .minute, .second, .nanosecond ]
@@ -1781,9 +1782,10 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
         return weekNo
     }
 
-    func dateComponents(_ components: Calendar.ComponentSet, from date: Date, in timeZone: TimeZone) -> DateComponents {
-        let timezoneOffset = timeZone.secondsFromGMT(for: date)
-        let date = date + Double(timezoneOffset)
+    func dateComponents(_ components: Calendar.ComponentSet, from d: Date, in timeZone: TimeZone) -> DateComponents {
+        let capped = d.capped
+        let timezoneOffset = timeZone.secondsFromGMT(for: capped)
+        let date = d.capped + Double(timezoneOffset)
 
         let julianDay = date.julianDay
 
@@ -2543,6 +2545,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
     }
 
     func date(byAdding components: DateComponents, to date: Date, wrappingComponents: Bool) -> Date? {
+        let date = date.capped
         if wrappingComponents {
             return self.date(byAddingAndWrapping: components, to: date)
         } else {

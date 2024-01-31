@@ -1673,6 +1673,22 @@ internal final class _CalendarICU: _CalendarProtocol, @unchecked Sendable {
         return nil
     }
 
+    func firstInstant(of unit: Calendar.Component, at: Date) -> Date {
+        let at = at.capped
+        return lock.withLock {
+            var status = U_ZERO_ERROR
+            let current = ucal_getMillis(ucalendar, &status)
+
+            _locked_setToFirstInstant(of: unit, at: at)
+            let startUDate = ucal_getMillis(ucalendar, &status)
+            let res = Date(udate: startUDate)
+
+            // restore
+            ucal_setMillis(ucalendar, current, &status)
+            return res
+        }
+    }
+
     /// Set the calendar to the first instant of a particular component given a point in time. For example, the first instant of a day.
     private func _locked_setToFirstInstant(of unit: Calendar.Component, at: Date) {
         var status = U_ZERO_ERROR
