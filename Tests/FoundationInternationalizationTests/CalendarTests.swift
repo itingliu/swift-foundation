@@ -1587,10 +1587,10 @@ final class GregorianCalendarCompatibilityTests: XCTestCase {
 //        let allComponents: [Calendar.Component] = [.day]
 
         let dates: [Date] = [
-//            Date(timeIntervalSinceReferenceDate: -185185037675833.0),
+            Date(timeIntervalSinceReferenceDate: -185185037675833.0),
             Date(timeIntervalSinceReferenceDate: -211845067200.0),
-//            Date(timeIntervalSinceReferenceDate: 200000000000000.0),
-//            Date(timeIntervalSinceReferenceDate: 15927175497600.0),
+            Date(timeIntervalSinceReferenceDate: 200000000000000.0),
+            Date(timeIntervalSinceReferenceDate: 15927175497600.0),
         ]
         for date in dates {
             for component in allComponents {
