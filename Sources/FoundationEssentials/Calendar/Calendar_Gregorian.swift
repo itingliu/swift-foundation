@@ -453,7 +453,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
 
         guard isValidComponent(larger) else { return nil }
 
-        let capped = date.capped
+        let capped = date
 
         // The range of these fields are fixed, and so are independent of what larger fields are
         switch smaller {
@@ -678,7 +678,6 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
     // MARK: - Ordinality
 
     func firstInstant(of unit: Calendar.Component, at date: Date) -> Date {
-        let date = date.capped
         var startAtUnit = unit
         let monthBasedComponents : Calendar.ComponentSet = [.era, .year, .month, .day, .hour, .minute, .second, .nanosecond]
         let weekBasedComponents: Calendar.ComponentSet = [.era, .weekday, .weekOfYear, .yearForWeekOfYear, .hour, .minute, .second, .nanosecond ]
@@ -793,7 +792,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
     // FIXME: This is almost the same with Calendar_ICU's _locked_start(of:).
     // There is a chance of refactoring Calendar_ICU to use this one
     func start(of unit: Calendar.Component, at: Date) -> Date? {
-        let capped = at.capped
+        let capped = at
 
         let time = capped.timeIntervalSinceReferenceDate
 
@@ -1340,7 +1339,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
 
     func dateInterval(of component: Calendar.Component, for date: Date) -> DateInterval? {
 
-        let capped = date.capped
+        let capped = date
         let time = capped.timeIntervalSinceReferenceDate
         var effectiveUnit = component
         switch effectiveUnit {
@@ -1783,9 +1782,8 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
     }
 
     func dateComponents(_ components: Calendar.ComponentSet, from d: Date, in timeZone: TimeZone) -> DateComponents {
-        let capped = d.capped
-        let timezoneOffset = timeZone.secondsFromGMT(for: capped)
-        let date = d.capped + Double(timezoneOffset)
+        let timezoneOffset = timeZone.secondsFromGMT(for: d)
+        let date = d + Double(timezoneOffset)
 
         let julianDay = date.julianDay
 
@@ -2434,7 +2432,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
     }
 
 
-    func date(byAddingAndWrapping components: DateComponents, to date: Date) -> Date? {
+    internal func date(byAddingAndWrapping components: DateComponents, to date: Date) -> Date? {
         let timeZone = components.timeZone ?? self.timeZone
         var result = date
         // No leap month support needed here, since these are quantities, not values
@@ -2489,7 +2487,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
         return result
     }
 
-    func date(byAddingAndCarryingOverComponents components: DateComponents, to date: Date) -> Date? {
+    internal func date(byAddingAndCarryingOverComponents components: DateComponents, to date: Date) -> Date? {
         let timeZone = components.timeZone ?? self.timeZone
         var result = date
         // No leap month support needed here, since these are quantities, not values
@@ -2545,7 +2543,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
     }
 
     func date(byAdding components: DateComponents, to date: Date, wrappingComponents: Bool) -> Date? {
-        let date = date.capped
+        let date = date
         if wrappingComponents {
             return self.date(byAddingAndWrapping: components, to: date)
         } else {
@@ -2624,8 +2622,8 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
     }
 
     func dateComponents(_ components: Calendar.ComponentSet, from start: Date, to end: Date) -> DateComponents {
-        let cappedStart = start.capped
-        let cappedEnd = end.capped
+        let cappedStart = start
+        let cappedEnd = end
 
         let subseconds = cappedStart.timeIntervalSinceReferenceDate.remainder(dividingBy: 1)
 

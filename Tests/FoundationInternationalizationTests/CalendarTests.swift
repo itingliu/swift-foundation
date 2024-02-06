@@ -1198,7 +1198,7 @@ final class GregorianCalendarCompatibilityTests: XCTestCase {
             let gregorianCalendar = _CalendarGregorian(identifier: .gregorian, timeZone: tz, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
 //            test(.distantPast, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
 //            test(.distantFuture, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
-            test(Date(timeIntervalSince1970: -210866774822), icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
+            test(Date(timeIntervalSince1970: -210866774822).capped, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
             
         }
 
@@ -1602,10 +1602,10 @@ final class GregorianCalendarCompatibilityTests: XCTestCase {
 //        let allComponents: [Calendar.Component] = [.day]
 
         let dates: [Date] = [
-            Date(timeIntervalSinceReferenceDate: -185185037675833.0),
-            Date(timeIntervalSinceReferenceDate: -211845067200.0),
-//            Date(timeIntervalSinceReferenceDate: 200000000000000.0),
-//            Date(timeIntervalSinceReferenceDate: 15927175497600.0),
+            Date(timeIntervalSinceReferenceDate: -185185037675833.0).capped,
+            Date(timeIntervalSinceReferenceDate: -211845067200.0).capped,
+            Date(timeIntervalSinceReferenceDate: 200000000000000.0).capped,
+            Date(timeIntervalSinceReferenceDate: 15927175497600.0).capped,
         ]
         for date in dates {
             for component in allComponents {
@@ -1628,16 +1628,16 @@ final class GregorianCalendarCompatibilityTests: XCTestCase {
 //        let allComponents : [Calendar.Component] = [.era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .dayOfYear, .calendar, .timeZone]
         let allComponents: [Calendar.Component] = [.day]
         let dates: [Date] = [
-            Date(timeIntervalSinceReferenceDate: -185185037675833.0),
-//            Date(timeIntervalSinceReferenceDate: -211845067200.0),
-//            Date(timeIntervalSinceReferenceDate: 200000000000000.0),
-//            Date(timeIntervalSinceReferenceDate: 15927175497600.0),
+            Date(timeIntervalSinceReferenceDate: -185185037675833.0).capped,
+            Date(timeIntervalSinceReferenceDate: -211845067200.0).capped,
+            Date(timeIntervalSinceReferenceDate: 200000000000000.0).capped,
+            Date(timeIntervalSinceReferenceDate: 15927175497600.0).capped,
         ]
         for date in dates {
             for component in allComponents {
                 let c1 = icuCalendar.firstInstant(of: component, at: date)
                 let c2 = gregorianCalendar.firstInstant(of: component, at: date)
-                XCTAssertEqual(c1, c2)
+                XCTAssertEqual(c1, c2, date.timeIntervalSinceReferenceDate)
                 // reduced test case: currently failing at capped date
 //                let r = gregorianCalendar.firstInstant(of: .day, at: date)
             }
