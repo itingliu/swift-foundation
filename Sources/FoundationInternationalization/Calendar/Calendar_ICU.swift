@@ -1224,7 +1224,7 @@ internal final class _CalendarICU: _CalendarProtocol, @unchecked Sendable {
 
     func dateComponents(_ components: Calendar.ComponentSet, from date: Date) -> DateComponents {
         return lock.withLock {
-            let capped = date.capped
+            let capped = date
             var status = U_ZERO_ERROR
             ucal_clear(ucalendar)
             ucal_setMillis(ucalendar, capped.udateInSeconds, &status)
@@ -1674,7 +1674,8 @@ internal final class _CalendarICU: _CalendarProtocol, @unchecked Sendable {
     }
 
     func firstInstant(of unit: Calendar.Component, at: Date) -> Date {
-        lock.withLock {
+        let at = at.capped
+        return lock.withLock {
             var status = U_ZERO_ERROR
             let current = ucal_getMillis(ucalendar, &status)
 

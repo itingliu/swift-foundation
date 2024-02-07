@@ -613,7 +613,7 @@ public struct Calendar : Hashable, Equatable, Sendable {
     /// - returns: All components, calculated using the `Calendar` and `TimeZone`.
     @available(iOS 8.0, *)
     public func dateComponents(in timeZone: TimeZone, from date: Date) -> DateComponents {
-        var dc = _calendar.dateComponents([.era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .dayOfYear, .calendar, .timeZone], from: date, in: timeZone)
+        var dc = _calendar.dateComponents([.era, .year, .month, .day, .hour, .minute, .second, .nanosecond, .weekday, .weekdayOrdinal, .quarter, .weekOfMonth, .weekOfYear, .yearForWeekOfYear, .dayOfYear, .calendar, .timeZone], from: date.capped, in: timeZone)
 
         // Fill out the Calendar field of dateComponents (the above calls cannot insert this struct into the date components, because they don't know the right value).
         dc.calendar = self
