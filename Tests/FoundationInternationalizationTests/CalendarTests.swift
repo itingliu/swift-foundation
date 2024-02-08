@@ -1210,8 +1210,21 @@ final class GregorianCalendarCompatibilityTests: XCTestCase {
             let gregorianCalendar = _CalendarGregorian(identifier: .gregorian, timeZone: tz, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
 //            test(.distantPast, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
 //            test(.distantFuture, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
-            test(Date(timeIntervalSince1970: -210866774822), icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
+//            test(Date(timeIntervalSince1970: -210866774822), icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
+            test(Date(timeIntervalSinceReferenceDate: 3161919600), icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
         }
+
+        do {
+            let icuCalendar = _CalendarICU(identifier: .gregorian, timeZone: .gmt, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
+            let gregorianCalendar = _CalendarGregorian(identifier: .gregorian, timeZone: .gmt, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
+            // Properly `floor`ed, the value below is -1 second from reference date
+
+            let date = Date(timeIntervalSinceReferenceDate: -1.0012654182354326e-43) // 2001-01-01 00:00:00 +0000
+
+            test(date, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar)
+
+        }
+
 
     }
 
@@ -1225,7 +1238,12 @@ final class GregorianCalendarCompatibilityTests: XCTestCase {
             return
         }
 
-        expectEqual(added_greg, added_icu, message().appending("components:\(components)"), file: file, line: line)
+        let tz = icuCalendar.timeZone
+        assert(icuCalendar.timeZone == gregorianCalendar.timeZone)
+
+        var dsc_greg = added_greg.formatted(Date.ISO8601FormatStyle(timeZone: tz))
+        var dsc_icu = added_icu.formatted(Date.ISO8601FormatStyle(timeZone: tz))
+        expectEqual(added_greg, added_icu, message().appending("components:\(components), greg: \(dsc_greg), icu: \(dsc_icu)"), file: file, line: line)
     }
 
     func testAddComponentsCompatibility_singleField() {
@@ -1464,6 +1482,46 @@ final class GregorianCalendarCompatibilityTests: XCTestCase {
         verifyAdding(.init(day: 1), to: date, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar, wrap: false)
     }
 
+    func testAddComponentsWrap() {
+        let timeZone = TimeZone(identifier: "Europe/Rome")!
+        let icuCalendar = _CalendarICU(identifier: .gregorian, timeZone: timeZone, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
+        let gregorianCalendar = _CalendarGregorian(identifier: .gregorian, timeZone: timeZone, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
+
+        var date = Date(timeIntervalSinceReferenceDate:  -702180000) // 1978-10-01T23:00:00+0100
+        var dsc = date.formatted(Date.ISO8601FormatStyle(timeZone: timeZone))
+        print(dsc)
+        verifyAdding(.init(hour: 1), to: date, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar, wrap: true)
+    }
+
+    func testAddWrapDST() {
+        let timeZone = TimeZone(identifier: "Europe/Rome")!
+        let icuCalendar = _CalendarICU(identifier: .gregorian, timeZone: timeZone, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
+        let gregorianCalendar = _CalendarGregorian(identifier: .gregorian, timeZone: timeZone, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
+        var date = Date(timeIntervalSinceReferenceDate:  -702180000)
+        print(date.formatted(Date.ISO8601FormatStyle(timeZone: timeZone)))
+
+        func addOneHour(to date: Date) -> Date {
+
+            let result = icuCalendar.date(byAdding: .init(hour: 1), to: date, wrappingComponents: true)!
+            print(result.formatted(Date.ISO8601FormatStyle(timeZone: timeZone)))
+            return result
+        }
+
+        let d1 = addOneHour(to: date)
+        let d2 = addOneHour(to: d1)
+        let d3 = addOneHour(to: d2)
+
+    }
+
+    func testAddComponentsWrap2() {
+        let timeZone = TimeZone(identifier: "America/Los_Angeles")!
+        let icuCalendar = _CalendarICU(identifier: .gregorian, timeZone: timeZone, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
+        let gregorianCalendar = _CalendarGregorian(identifier: .gregorian, timeZone: timeZone, locale: nil, firstWeekday: nil, minimumDaysInFirstWeek: nil, gregorianStartDate: nil)
+
+        var date = Date(timeIntervalSince1970: 814950000.0) // 1995-10-29T00:00:00-0700
+        verifyAdding(.init(minute: -1), to: date, icuCalendar: icuCalendar, gregorianCalendar: gregorianCalendar, wrap: true)
+
+    }
 
     func testDateIntervalCompatibility() {
         let firstWeekday = 2
