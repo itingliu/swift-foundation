@@ -1,3 +1,12 @@
+extension DateComponents {
+    init(_ recurrenceRule: Calendar.RecurrenceRule) {
+        // FIXME: Stub
+    }
+}
+
+extension Calendar.MatchingPolicy {
+    
+}
 
 extension Calendar {
 
@@ -8,7 +17,9 @@ extension Calendar {
     ///   repeat
     /// - Returns: a sequence of dates conforming to the recurrence rule. If the
     ///   rule is invalid, returns an empty sequence.
-    func recurrences(of start: Date, by rule: RecurrenceRule) -> some Sequence<Date>
+    func recurrences(of start: Date, by rule: RecurrenceRule) -> some Sequence<Date> {
+        dates(byMatching: DateComponents(rule), startingAt: .now)
+    }
 
     /// A rule which specifies how often an event should repeat in the future
     /// 
