@@ -18,6 +18,9 @@ import TestSupport
 @testable import FoundationEssentials
 #endif
 
+#if FOUNDATION_FRAMEWORK
+@testable import Foundation
+#endif
 
 // Tests for _GregorianCalendar
 final class GregorianCalendarTests : XCTestCase {
