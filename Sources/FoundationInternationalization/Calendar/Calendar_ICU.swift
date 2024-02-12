@@ -1827,6 +1827,7 @@ internal final class _CalendarICU: _CalendarProtocol, @unchecked Sendable {
         print("icu: first instant loop count = \(count)")
         
         udate = ucal_getMillis(ucalendar, &status)
+        print("icu: setting millis to \(udate)")
         let start = Date(udate: udate)
 
         if let tzTransition = _locked_timeZoneTransitionInterval(at: start) {
