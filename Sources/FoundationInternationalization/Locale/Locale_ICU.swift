@@ -1196,6 +1196,10 @@ internal final class _LocaleICU: _LocaleProtocol, Sendable {
 
     // MARK: First weekday
 
+    var firstDayOfWeek: Locale.Weekday {
+        firstDayOfWeek(calendarIdentifier)
+    }
+
     func forceFirstWeekday(_ calendar: Calendar.Identifier) -> Locale.Weekday? {
         if let weekdayNumber = prefs?.firstWeekday?[calendar] {
             // 1 is Sunday
@@ -1205,7 +1209,7 @@ internal final class _LocaleICU: _LocaleProtocol, Sendable {
         return nil
     }
 
-    var firstDayOfWeek: Locale.Weekday {
+    func firstDayOfWeek(_ calendar: Calendar.Identifier) -> Locale.Weekday {
         lock.withLock { state in
             if let first = state.firstDayOfWeek {
                 return first
@@ -1219,12 +1223,12 @@ internal final class _LocaleICU: _LocaleProtocol, Sendable {
                 }
 
                 // Check prefs
-                if let first = forceFirstWeekday(_lockedCalendarIdentifier(&state)) {
+                if let first = forceFirstWeekday(calendar) {
                     state.firstDayOfWeek = first
                     return first
                 }
 
-                // Fall back to the calendar's default value
+                // Fall back to the locale's default value
                 var status = U_ZERO_ERROR
                 let cal = ucal_open(nil, 0, identifier, UCAL_DEFAULT, &status)
                 defer { ucal_close(cal) }
@@ -1244,6 +1248,8 @@ internal final class _LocaleICU: _LocaleProtocol, Sendable {
             }
         }
     }
+
+    // MARK: - Weekend
 
     var weekendRange: WeekendRange? {
         let firstWeekday = self.firstDayOfWeek
@@ -1357,13 +1363,17 @@ internal final class _LocaleICU: _LocaleProtocol, Sendable {
     // MARK: Min days in first week
 
     var minimumDaysInFirstWeek: Int {
+        minimumDaysInFirstWeek(calendarIdentifier)
+    }
+
+    internal func minimumDaysInFirstWeek(_ calendar: Calendar.Identifier) -> Int {
         lock.withLock { state in
             if let minDays = state.minimalDaysInFirstWeek {
                 return minDays
             }
 
             // Check prefs
-            if let minDays = forceMinDaysInFirstWeek(_lockedCalendarIdentifier(&state)) {
+            if let minDays = forceMinDaysInFirstWeek(calendar) {
                 state.minimalDaysInFirstWeek = minDays
                 return minDays
             }
