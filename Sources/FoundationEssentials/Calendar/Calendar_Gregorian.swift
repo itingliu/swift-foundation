@@ -2841,12 +2841,18 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
             if components.contains(.month) {
                 comps.append(.month)
             }
+            // Week
             if components.contains(.weekOfYear) {
                 comps.append(.weekOfYear)
             }
             if components.contains(.weekOfMonth) {
                 comps.append(.weekOfMonth)
             }
+            if components.contains(.weekdayOrdinal) {
+                comps.append(.weekdayOrdinal)
+            }
+
+            // Day
             if components.contains(.day) {
                 comps.append(.day)
             }
@@ -2856,9 +2862,8 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
             if components.contains(.weekday) {
                 comps.append(.weekday)
             }
-            if components.contains(.weekdayOrdinal) {
-                comps.append(.weekdayOrdinal)
-            }
+
+            // Time
             if components.contains(.hour) {
                 comps.append(.hour)
             }
