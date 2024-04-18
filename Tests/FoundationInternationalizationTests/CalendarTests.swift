@@ -1121,6 +1121,24 @@ final class CalendarTests : XCTestCase {
         // 2024-03-03T02:34:36-0800, 2024-03-11T02:34:36-0700
         try test(Date(timeIntervalSinceReferenceDate: 731154876), Date(timeIntervalSinceReferenceDate: 731842476))
     }
+ 
+    func testDateComponentsFromTo() {
+        var calendar = Calendar(identifier: .gregorian)
+        let timeZone = TimeZone(identifier: "America/Los_Angeles")!
+        calendar.timeZone = timeZone
+
+        // 2021-11-07 08:30:00Z, 2021-11-07 01:30:00 PDT. Daylight saving time ends 30 minutes after this.
+        let start = Date(timeIntervalSince1970: 1636273800)
+
+        // 2021-11-07 10:30:00Z, 2021-11-07 02:30:00 PST
+        let end = Date(timeIntervalSince1970: 1636281000)
+
+        let duration = calendar.dateComponents([.era, .day, .hour, .minute, .second], from: start, to: end)
+        XCTAssertEqual(duration.hour, 1)
+
+        let duration_hour = calendar.dateComponents([.hour], from: start, to: end)
+        XCTAssertEqual(duration_hour.hour, 1)
+    }
 }
 
 // MARK: - Bridging Tests
