@@ -1121,6 +1121,42 @@ final class CalendarTests : XCTestCase {
         // 2024-03-03T02:34:36-0800, 2024-03-11T02:34:36-0700
         try test(Date(timeIntervalSinceReferenceDate: 731154876), Date(timeIntervalSinceReferenceDate: 731842476))
     }
+
+    func test_dateComponentsFromToEndAroundDST() {
+
+
+        let timeZone = TimeZone(identifier: "Europe/Madrid")!
+
+        func test(_ calID: Calendar.Identifier, file: StaticString = #file, line: Int = #line) {
+            var calendar = Calendar(identifier: calID)
+            calendar.timeZone = timeZone
+
+            // 2AM and 2:05AM Madrid time on October 29, 2023, DST ends
+            let start = Date(timeIntervalSinceReferenceDate: 720230400)
+            let end = Date(timeIntervalSinceReferenceDate: 720230700)
+            let components = calendar.dateComponents([.era, .day, .hour, .minute, .second], from: start, to: end)
+            XCTAssertEqual(components.era, 0)
+            XCTAssertEqual(components.day, 0)
+            XCTAssertEqual(components.hour, 0)
+            XCTAssertEqual(components.minute, 5)
+            XCTAssertEqual(components.second, 0)
+
+            let roundtrip = calendar.date(byAdding: components, to: start)
+            XCTAssertEqual(roundtrip, end)
+        }
+
+        test(.gregorian)
+        test(.iso8601)
+
+
+        var calendar = Calendar(identifier: .iso8601)
+        calendar.timeZone = timeZone
+
+        let start = Date.distantPast.addingTimeInterval(-86400*25.0) // 0000-12-05 00:00:00 UTC
+        let end = Date.now
+        let components = calendar.dateComponents([.era, .year, .month, .day, .hour, .minute, .second], from: start, to: end) // before: era: 1 year: 2023 month: 4 day: 18 hour: 2 minute: 43 second: 46
+        print(components)
+    }
 }
 
 // MARK: - Bridging Tests

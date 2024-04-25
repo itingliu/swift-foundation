@@ -1328,6 +1328,15 @@ internal final class _CalendarICU: _CalendarProtocol, @unchecked Sendable {
                 ucal_setMillis(ucalendar, curr, &status)
                 ucal_set(ucalendar, UCAL_ERA, goalEra)
                 dc.era = Int(goalEra - currEra)
+
+//                // handle the ambiguous time that occurs twice at the end of DST:
+//                // if we're in DST, then we want the first occurrence of this time,
+//                // otherwise we want the second occurrence of this time
+//                if (get[UCAL_DST_OFFSET] != 0) {
+//                    setRepeatedWallTimeOption(UCAL_WALLTIME_FIRST);
+//                } else {
+//                    setRepeatedWallTimeOption(UCAL_WALLTIME_LAST);
+//                }
             }
             if components.contains(.year) { dc.year = Int(ucal_getFieldDifference(ucalendar, goal, UCAL_YEAR, &status)) }
             if components.contains(.yearForWeekOfYear) { dc.yearForWeekOfYear = Int(ucal_getFieldDifference(ucalendar, goal, UCAL_YEAR_WOY, &status)) }
