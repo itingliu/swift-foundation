@@ -165,6 +165,14 @@ final class LocaleTests : XCTestCase {
             return Locale.Components(identifier: "")
         }
 
+        verify(cldr: "root", bcp47: "und", icu: "") {
+            return Locale.Components(languageCode: "", script: "", languageRegion: "")
+        }
+
+        verify(cldr: "root", bcp47: "und", icu: "") {
+            return Locale.Components(languageCode: nil, script: nil, languageRegion: nil)
+        }
+
         verify(cldr: "und_US", bcp47: "und-US", icu: "_US") {
             return Locale.Components(languageRegion: .unitedStates)
         }
@@ -371,47 +379,61 @@ final class LocaleTests : XCTestCase {
         XCTAssertNil(result)
     }
 
-    func test_emptyComponents() {
+    func test_emptyComponents() throws {
 
-        // Locale -> Locale.Components -> LanguageComponents
         let emptyLocale = Locale(identifier: "") // truth
-        XCTAssertEqual(emptyLocale.language.languageCode, nil)
-        XCTAssertEqual(emptyLocale.language.script, nil)
+        // {"identifier":"","current":0}
+        XCTAssertEqual(emptyLocale.language.languageCode, nil) // Currently reutrns "-_"
+        XCTAssertEqual(emptyLocale.language.script, nil)       // Currently returns "Latn"
         XCTAssertEqual(emptyLocale.language.region, nil)
+        XCTAssertEqual(emptyLocale.language.maximalIdentifier, nil) // Currently returns "en-Latn-US"
+        XCTAssertEqual(emptyLocale.language.minimalIdentifier, nil) // Currently returns "en"
         XCTAssertEqual(emptyLocale.identifier, "")
 
         let localeFromEmptyComp = Locale(components: Locale.Components(identifier: ""))
+        // {"identifier":"","current":0}
         XCTAssertEqual(localeFromEmptyComp.language.languageCode, nil)
         XCTAssertEqual(localeFromEmptyComp.language.script, nil)
         XCTAssertEqual(localeFromEmptyComp.language.region, nil)
+        XCTAssertEqual(localeFromEmptyComp.language.maximalIdentifier, nil)
+        XCTAssertEqual(localeFromEmptyComp.language.minimalIdentifier, nil)
         XCTAssertEqual(localeFromEmptyComp.identifier, "")
 
         let localeFromEmptyLanguageComponent = Locale(languageComponents: .init(identifier: ""))
+        // {"current":0,"identifier":""}
         XCTAssertEqual(localeFromEmptyLanguageComponent.language.languageCode, nil)
         XCTAssertEqual(localeFromEmptyLanguageComponent.language.script, nil)
         XCTAssertEqual(localeFromEmptyLanguageComponent.language.region, nil)
+        XCTAssertEqual(localeFromEmptyLanguageComponent.language.maximalIdentifier, nil)
+        XCTAssertEqual(localeFromEmptyLanguageComponent.language.minimalIdentifier, nil)
         XCTAssertEqual(localeFromEmptyLanguageComponent.identifier, "")
 
         // If you specify empty language code/script/language region, the `language` variable should preserve those
         let localeFromEmptyIndividualLanguageComponent = Locale(languageCode: "", script: "", languageRegion: "")
+        // {"identifier":"-_","current":0}
         XCTAssertEqual(localeFromEmptyIndividualLanguageComponent.language.languageCode, "")
         XCTAssertEqual(localeFromEmptyIndividualLanguageComponent.language.script, "")
         XCTAssertEqual(localeFromEmptyIndividualLanguageComponent.language.region, "")
+        XCTAssertEqual(localeFromEmptyIndividualLanguageComponent.language.maximalIdentifier, nil)
+        XCTAssertEqual(localeFromEmptyIndividualLanguageComponent.language.minimalIdentifier, nil)
         XCTAssertEqual(localeFromEmptyIndividualLanguageComponent.identifier, "")
 
         // Locale.Component
         let compFromEmptyLocale = Locale.Components(locale: emptyLocale)
+        // {"languageComponents":{}}
         XCTAssertEqual(compFromEmptyLocale.languageComponents.languageCode, nil)
         XCTAssertEqual(compFromEmptyLocale.languageComponents.script, nil)
         XCTAssertEqual(compFromEmptyLocale.languageComponents.region, nil)
 
         let emptyComp = Locale.Components(identifier: "")
+        // {"languageComponents":{}}
         XCTAssertEqual(emptyComp.languageComponents.languageCode, nil)
         XCTAssertEqual(emptyComp.languageComponents.script, nil)
         XCTAssertEqual(emptyComp.languageComponents.region, nil)
 
         // Language
         let emptyLanguage = Locale.Language(identifier: "")
+        // {"components":{}}
         XCTAssertEqual(emptyLanguage.languageCode, nil)
         XCTAssertEqual(emptyLanguage.script, nil)
         XCTAssertEqual(emptyLanguage.region, nil)
@@ -419,6 +441,7 @@ final class LocaleTests : XCTestCase {
         XCTAssertEqual(emptyLanguage.minimalIdentifier, "")
 
         let languageFromEmptyComponents = Locale.Language(components: .init(identifier: ""))
+        // {"components":{}}
         XCTAssertEqual(languageFromEmptyComponents.languageCode, nil)
         XCTAssertEqual(languageFromEmptyComponents.script, nil)
         XCTAssertEqual(languageFromEmptyComponents.region, nil)
@@ -426,6 +449,7 @@ final class LocaleTests : XCTestCase {
         XCTAssertEqual(languageFromEmptyComponents.minimalIdentifier, "")
 
         let languageFromEmptyComponents2 = Locale.Language(components: .init(languageCode: "", script: "", region: ""))
+        // {"components":{"region":"","script":"","languageCode":""}}
         XCTAssertEqual(languageFromEmptyComponents2.languageCode, "")
         XCTAssertEqual(languageFromEmptyComponents2.script, "")
         XCTAssertEqual(languageFromEmptyComponents2.region, "")
@@ -434,11 +458,13 @@ final class LocaleTests : XCTestCase {
 
         // Language.Component
         let languageCompFromEmptyLanguage = Locale.Language.Components(language: Locale.Language(identifier: ""))
+        // {"script":"Latn"}
         XCTAssertEqual(languageCompFromEmptyLanguage.languageCode, nil)
         XCTAssertEqual(languageCompFromEmptyLanguage.script, nil)
         XCTAssertEqual(languageCompFromEmptyLanguage.region, nil)
 
         let emptyLanguageComponents = Locale.Language.Components(identifier: "")
+        // {}
         XCTAssertEqual(emptyLanguageComponents.languageCode, nil)
         XCTAssertEqual(emptyLanguageComponents.script, nil)
         XCTAssertEqual(emptyLanguageComponents.region, nil)
@@ -490,6 +516,8 @@ final class LocalePropertiesTests : XCTestCase {
         verify(components: Locale.Components(languageCode: "zh", script: "Hant", languageRegion: "TW"), identifier: "zh-Hant_TW")
         verify(components: Locale.Components(languageCode: "zh", script: "Hant", languageRegion: "TW"), identifier: "zh_TW")
         verify(components: Locale.Components(languageCode: "zh", script: "Hans", languageRegion: "TW"), identifier: "zh-Hans_TW")
+
+        verify(components: .init(languageCode: "", script: "", languageRegion: ""), identifier: "")
 
         var custom = Locale.Components(languageCode: "en", languageRegion: "US")
         custom.measurementSystem = .metric
