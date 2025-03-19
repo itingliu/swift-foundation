@@ -22,6 +22,10 @@ import TestSupport
 @testable import Foundation
 #endif
 
+#if canImport(Testing)
+import Testing
+#endif
+
 // Tests for _GregorianCalendar
 final class GregorianCalendarTests : XCTestCase {
 
@@ -3898,3 +3902,13 @@ final class GregorianCalendarTests : XCTestCase {
     }
 }
 
+@Suite struct GregorianCalendarTests2 {
+    @Test func dateComponentsFromRemoteDate() async throws {
+        let remoteDate = Date(timeIntervalSince1970: TimeInterval(Int.max))
+        let calendar = Calendar(identifier: .gregorian)
+        let dc = calendar.dateComponents([.year, .month, .day], from: remoteDate)
+        #expect(dc.year != nil)
+        #expect(dc.month != nil)
+        #expect(dc.day != nil)
+    }
+}

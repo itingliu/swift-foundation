@@ -33,15 +33,18 @@ extension Date {
     static let julianDayAtDateReference: Double = 2_451_910.5 // 2001 Jan 1, midnight, UTC
     static let maxJulianDay = 0x7F000000  // Dec 20, 5828963 AD
     static let minJulianDay = -0x7F000000 // Sep 20, 5838270 BC
-
+    static let supportedJulianDayYearRange = -5828963...5838270
     var julianDate: Double {
         timeIntervalSinceReferenceDate / 86400 + Self.julianDayAtDateReference
     }
 
     func julianDay() throws (GregorianCalendarError) -> Int {
         let jd = (julianDate + 0.5).rounded(.down)
-        guard jd <= Double(Self.maxJulianDay), jd >= Double(Self.minJulianDay) else {
-            throw .overflow(nil, self, nil)
+        guard jd <= Double(Self.maxJulianDay) else {
+            throw .unsupportedDistantFuture
+        }
+        guard jd >= Double(Self.minJulianDay) else {
+            throw .unsupportedDistantPast
         }
 
         return Int(jd)
@@ -166,6 +169,8 @@ enum ResolvedDateComponents {
 
 /// Internal-use error for indicating unexpected situations when finding dates.
 enum GregorianCalendarError : Error {
+    case unsupportedDistantPast
+    case unsupportedDistantFuture
     case overflow(Calendar.Component?, Date? /* failing start date */, Date? /* failing end date */)
     case notAdvancing(Date /* next */, Date /* previous */)
 }
@@ -739,6 +744,10 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
                 _CalendarGregorian.logger.error("Overflowing in firstInstant(of:at:). unit: \(unit.debugDescription, privacy: .public), at: \(at.timeIntervalSinceReferenceDate, privacy: .public)")
             case .notAdvancing(_, _):
                 _CalendarGregorian.logger.error("Not advancing in firstInstant(of:at:). unit: \(unit.debugDescription, privacy: .public), at: \(at.timeIntervalSinceReferenceDate, privacy: .public)")
+            case .unsupportedDistantPast:
+                _CalendarGregorian.logger.error("unsupportedDistantPast in firstInstant(of:at:). unit: \(unit.debugDescription, privacy: .public), at: \(at.timeIntervalSinceReferenceDate, privacy: .public)")
+            case .unsupportedDistantFuture:
+                _CalendarGregorian.logger.error("unsupportedDistantFuture in firstInstant(of:at:). unit: \(unit.debugDescription, privacy: .public), at: \(at.timeIntervalSinceReferenceDate, privacy: .public)")
             }
 #endif
             return nil
@@ -933,6 +942,10 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
                 _CalendarGregorian.logger.error("Overflowing in ordinality(of:in:for:). smaller: \(smaller.debugDescription, privacy: .public), larger: \(larger.debugDescription, privacy: .public), date: \(date.timeIntervalSinceReferenceDate, privacy: .public)")
             case .notAdvancing(_, _):
                 _CalendarGregorian.logger.error("Not advancing in ordinality(of:in:for:). smaller: \(smaller.debugDescription, privacy: .public), larger: \(larger.debugDescription, privacy: .public), date: \(date.timeIntervalSinceReferenceDate, privacy: .public)")
+            case .unsupportedDistantPast:
+                _CalendarGregorian.logger.error("unsupportedDistantPast in ordinality(of:in:for:). smaller: \(smaller.debugDescription, privacy: .public), larger: \(larger.debugDescription, privacy: .public), date: \(date.timeIntervalSinceReferenceDate, privacy: .public)")
+            case .unsupportedDistantFuture:
+                _CalendarGregorian.logger.error("unsupportedDistantFuture in ordinality(of:in:for:). smaller: \(smaller.debugDescription, privacy: .public), larger: \(larger.debugDescription, privacy: .public), date: \(date.timeIntervalSinceReferenceDate, privacy: .public)")
             }
 #endif
             result = nil
@@ -1522,6 +1535,10 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
         } catch {
             switch error {
             case .overflow(_, _, _):
+                fallthrough
+            case .unsupportedDistantPast:
+                fallthrough
+            case .unsupportedDistantFuture:
                 // We are at the limit.
                 return DateInterval(start: start, duration: inf_ti)
             case .notAdvancing(_, _):
@@ -2063,17 +2080,37 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
 
             weekOfMonth = weekNumber(desiredDay: day, dayOfPeriod: day, weekday: weekday)
             weekdayOrdinal = (day - 1) / 7 + 1
-        } catch {
-            year = .max
-            month = .max
-            day = .max
-            dayOfYear = .max
-            weekday = .max
-            weekOfMonth = .max
-            yearForWeekOfYear = .max
-            weekdayOrdinal = .max
-            weekOfYear = .max
-            isLeapYear = false
+        } catch let error {
+            switch error {
+            case .unsupportedDistantPast:
+                year = Date.supportedJulianDayYearRange.lowerBound
+                month = .min
+                day = .min
+                dayOfYear = .max
+                weekday = .max
+                weekOfMonth = .max
+                yearForWeekOfYear = .max
+                weekdayOrdinal = .max
+                weekOfYear = .max
+                isLeapYear = false
+            case .unsupportedDistantFuture:
+                fallthrough
+            case .overflow(_, _, _):
+                fallthrough
+            case .notAdvancing(_, _):
+                // FIXME: use other things that is not Int.max
+                year = .max
+                month = .max
+                day = .max
+                dayOfYear = .max
+                weekday = .max
+                weekOfMonth = .max
+                yearForWeekOfYear = .max
+                weekdayOrdinal = .max
+                weekOfYear = .max
+                isLeapYear = false
+            }
+
         }
 
         var dc = DateComponents()
@@ -2136,7 +2173,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
         dateComponents(components, from: date, in: timeZone)
     }
 
-    func dateComponent(_ component: Calendar.Component, from date: Date) -> Int {
+    internal func dateComponent(_ component: Calendar.Component, from date: Date) -> Int {
         guard let value = dateComponents(.init(single: component), from: date, in: timeZone).value(for: component) else {
             preconditionFailure("dateComponents(:from:in:) unexpectedly returns nil for requested component")
         }
@@ -3049,8 +3086,13 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
                         _CalendarGregorian.logger.error("Overflowing in dateComponents(from:start:end:). start: \(curr.timeIntervalSinceReferenceDate, privacy: .public). end: \(end.timeIntervalSinceReferenceDate, privacy: .public). component: \(component.debugDescription, privacy: .public)")
                     case .notAdvancing(_, _):
                         _CalendarGregorian.logger.error("Not advancing in dateComponents(from:start:end:). start: \(curr.timeIntervalSinceReferenceDate, privacy: .public) end: \(end.timeIntervalSinceReferenceDate, privacy: .public) component: \(component.debugDescription, privacy: .public)")
+                    case .unsupportedDistantPast:
+                        _CalendarGregorian.logger.error("unsupportedDistantPast in dateComponents(from:start:end:). start: \(curr.timeIntervalSinceReferenceDate, privacy: .public) end: \(end.timeIntervalSinceReferenceDate, privacy: .public) component: \(component.debugDescription, privacy: .public)")
+                    case .unsupportedDistantFuture:
+                        _CalendarGregorian.logger.error("unsupportedDistantFuture in dateComponents(from:start:end:). start: \(curr.timeIntervalSinceReferenceDate, privacy: .public) end: \(end.timeIntervalSinceReferenceDate, privacy: .public) component: \(component.debugDescription, privacy: .public)")
                     }
 #endif
+                    // FIXME: don't use Int.max
                     dc.setValue(end > start ? Int(Int32.max) : Int(Int32.min), for: component)
                 }
 

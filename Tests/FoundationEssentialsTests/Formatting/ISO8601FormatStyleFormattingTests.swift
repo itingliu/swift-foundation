@@ -22,6 +22,8 @@ import TestSupport
 @testable import Foundation
 #endif
 
+import Testing
+
 final class ISO8601FormatStyleFormattingTests: XCTestCase {
 
     func test_ISO8601Format() throws {
@@ -135,5 +137,13 @@ final class ISO8601FormatStyleFormattingTests: XCTestCase {
         let date = Date(timeIntervalSinceReferenceDate: -978251054.0 - 0.0001)
         let str = Date.ISO8601FormatStyle().timeZone(separator: .colon).time(includingFractionalSeconds: true).timeSeparator(.colon).format(date)
         XCTAssertEqual(str, "15:35:45.999Z")
+    }
+}
+
+@Suite struct ISO8601FormattingTests {
+    @Test func formatIntMax() async throws {
+        let remoteDate = Date(timeIntervalSince1970: TimeInterval(Int.max))
+        let s = remoteDate.formatted(.iso8601)
+        #expect(s == "")
     }
 }
