@@ -302,6 +302,86 @@ extension Locale.Region {
         }
         return codes
     }()
+
+    /// Categories of a region. See https://www.unicode.org/reports/tr35/tr35-35/tr35-info.html#Territory_Data
+    @available(FoundationPreview 6.2, *)
+    public struct Category: Codable, Sendable, Hashable {
+        enum Inner {
+            case world
+            case continent
+            case subcontinent
+            case territory
+        }
+        var inner: Inner
+        private init(_ inner: Inner) { self.inner = inner }
+        /// Category representing the whold world.
+        public static let world: Category = Category(.world)
+
+        /// Category representing a continent, regions contained directly by world.
+        public static let continent: Category = Category(.continent)
+
+        /// Category representing a sub-continent, regions contained directly by a continent.
+        public static let subcontinent: Category = Category(.subcontinent)
+
+        /// Category representing a territory.
+        public static let territory: Category = Category(.territory)
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let inner: Inner
+            switch try container.decode(Int.self) {
+            case 0:
+                inner = .world
+            case 1:
+                inner = .continent
+            case 2:
+                inner = .subcontinent
+            case 3:
+                inner = .territory
+            default:
+                throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Unknown Category"))
+            }
+            self = .init(inner)
+        }
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
+            switch inner {
+            case .world:
+                try container.encode(0)
+            case .continent:
+                try container.encode(1)
+            case .subcontinent:
+                try container.encode(2)
+            case .territory:
+                try container.encode(3)
+            }
+        }
+    }
+
+    /// An array of regions matching the specified categories.
+    @available(FoundationPreview 6.2, *)
+    public static func isoRegions(ofCategory category: Category) -> [Locale.Region] {
+        fatalError()
+    }
+
+    /// The category of the region.
+    @available(FoundationPreview 6.2, *)
+    public var category: Category {
+        fatalError()
+    }
+
+    /// An array of the sub-regions, matching the specified category of the region.
+    @available(FoundationPreview 6.2, *)
+    public func subRegions(ofCategoy category: Category) -> [Locale.Region] {
+        fatalError()
+    }
+
+    /// The subcontinent that contains this region, if any.
+    @available(FoundationPreview 6.2, *)
+    public var subcontinent: Locale.Region? {
+        fatalError()
+    }
 }
 
 @available(macOS 13, iOS 16, tvOS 16, watchOS 9, *)
