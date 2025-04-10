@@ -363,24 +363,28 @@ extension Locale.Region {
     @available(FoundationPreview 6.2, *)
     public static func isoRegions(ofCategory category: Category) -> [Locale.Region] {
         fatalError()
+        // uregion_getAvailable
     }
 
     /// The category of the region.
     @available(FoundationPreview 6.2, *)
     public var category: Category {
         fatalError()
+//        uregion_getType
     }
 
     /// An array of the sub-regions, matching the specified category of the region.
     @available(FoundationPreview 6.2, *)
     public func subRegions(ofCategoy category: Category) -> [Locale.Region] {
         fatalError()
+        // uregion_getContainedRegionsOfType
     }
 
     /// The subcontinent that contains this region, if any.
     @available(FoundationPreview 6.2, *)
     public var subcontinent: Locale.Region? {
         fatalError()
+//        uregion_getContainingRegionOfType
     }
 }
 
