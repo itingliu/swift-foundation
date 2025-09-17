@@ -177,6 +177,16 @@ private struct TimeZoneTests {
             }
         }
     }
+
+    @Test func timeZoneOffset() throws {
+        for _ in 0...100000 {
+            let timezone = TimeZone(abbreviation: "PDT")!
+            let s = timezone.secondsFromGMT(for: .now)
+            #expect(s == -28800)
+        }
+
+        
+    }
 }
 
 @Suite("TimeZone GMT")
