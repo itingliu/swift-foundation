@@ -56,9 +56,6 @@ if let useLocalDepsEnv = Context.environment["SWIFTCI_USE_LOCAL_DEPS"], !useLoca
                 name: "swift-collections",
                 path: "\(root)/swift-collections"),
             .package(
-                name: "swift-foundation-icu",
-                path: "\(root)/swift-foundation-icu"),
-            .package(
                 name: "swift-syntax",
                 path: "\(root)/swift-syntax")
         ]
@@ -70,14 +67,20 @@ if let useLocalDepsEnv = Context.environment["SWIFTCI_USE_LOCAL_DEPS"], !useLoca
             .package(
                 url: "https://github.com/apple/swift-collections",
                 from: "1.1.0"),
-            .package(
-                url: "https://github.com/apple/swift-foundation-icu",
-                branch: "main"),
+//            .package(
+//                url: "https://github.com/apple/swift-foundation-icu",
+//                branch: "main"),
             .package(
                 url: "https://github.com/swiftlang/swift-syntax",
                 branch: "main")
         ]
 }
+
+dependencies += [
+    .package(
+        name: "swift-foundation-icu",
+        path: "../swift-foundation-icu"),
+]
 
 let wasiLibcCSettings: [CSetting] = [
     .define("_WASI_EMULATED_SIGNAL", .when(platforms: [.wasi])),
