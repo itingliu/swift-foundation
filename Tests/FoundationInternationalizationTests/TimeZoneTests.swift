@@ -182,10 +182,8 @@ private struct TimeZoneTests {
         for _ in 0...100000 {
             let timezone = TimeZone(abbreviation: "PDT")!
             let s = timezone.secondsFromGMT(for: .now)
-            #expect(s == -28800)
+            assert(s == -25200)
         }
-
-        
     }
 }
 

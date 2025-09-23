@@ -171,7 +171,7 @@ enum GregorianCalendarError : Error {
 }
 
 /// This class is a placeholder and work-in-progress to provide an implementation of the Gregorian calendar.
-internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable {
+package final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable {
 
 #if canImport(os)
     internal static let logger: Logger = {
@@ -191,7 +191,7 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
 
     let inf_ti : TimeInterval = 4398046511104.0
 
-    init(identifier: Calendar.Identifier, timeZone: TimeZone?, locale: Locale?, firstWeekday: Int?, minimumDaysInFirstWeek: Int?, gregorianStartDate: Date?) {
+    package init(identifier: Calendar.Identifier, timeZone: TimeZone?, locale: Locale?, firstWeekday: Int?, minimumDaysInFirstWeek: Int?, gregorianStartDate: Date?) {
 
         // ISO8601 has different default values locale, firstWeekday, and minimumDaysInFirstWeek
         let defaultLocale: Locale?
@@ -1712,6 +1712,31 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
         }
     }
 
+    package static func numberOfDaysInMonth(_ month: Int, year: Int) -> Int {
+        var month = month
+        var year = year
+        if month > 12 {
+            let (q, r) = (month - 1).quotientAndRemainder(dividingBy: 12)
+            month = r + 1
+            year += q
+        } else if month < 1 {
+            let (q, r) = month.quotientAndRemainder(dividingBy: 12)
+            month = r + 12
+            year = year - q - 1
+        }
+        switch month {
+        case 1, 3, 5, 7, 8, 10, 12:
+            return 31
+        case 4, 6, 9, 11:
+            return 30
+        case 2:
+            return isLeapYear(year) ? 29 : 28
+        default:
+            fatalError("programming error, month out of range")
+        }
+    }
+
+
     // Returns the weekday with reference to `firstWeekday`, in the range of 0...6
     func wrapAroundRelativeWeekday(_ weekday: Int) -> Int {
         var dow = (weekday - firstWeekday) % 7
@@ -1967,6 +1992,11 @@ internal final class _CalendarGregorian: _CalendarProtocol, @unchecked Sendable 
         } else {
             return (year % 4 == 0)
         }
+    }
+
+
+    static func isLeapYear(_ year: Int) -> Bool {
+        return (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0))
     }
 
     // from ICU calendar.cpp
