@@ -277,7 +277,11 @@ if embeddedLayout {
     let essentials = package.targets.first { $0.name == "FoundationEssentials" }!
     let internationalization = package.targets.first { $0.name == "FoundationInternationalization" }!
     // The OS availability annotations describe which Foundation.framework release has an API. Embedded Swift links Foundation into each program, so every API is available at the embedded deployment target, and every `#available` check for Foundation's own code is true.
-    let embeddedSwiftSettings: [SwiftSetting] = (essentials.swiftSettings ?? []) + [.unsafeFlags(["-Xfrontend", "-disable-availability-checking"])]
+    let disableAvailabilityChecking: SwiftSetting = .unsafeFlags(["-Xfrontend", "-disable-availability-checking"])
+    let embeddedSwiftSettings: [SwiftSetting] = (essentials.swiftSettings ?? []) + [disableAvailabilityChecking]
+
+    let internationalizationData = package.targets.first { $0.name == "_FoundationInternationalizationData" }!
+    internationalizationData.swiftSettings = (internationalizationData.swiftSettings ?? []) + [disableAvailabilityChecking]
 
     // Two targets cannot have the same source files, so remove the separate modules and the tests that use them.
     package.targets.removeAll {
